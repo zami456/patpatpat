@@ -1,0 +1,138 @@
+{% extends "base.html" %}
+
+{% block title %}Add Pet{% endblock %}
+
+{% block content %}
+<style>
+    .add-pet-container {
+        max-width: 500px;
+        margin: 0 auto;
+        padding-top: 50px;
+    }
+    .card {
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+    .form-group {
+        text-align: left;
+    }
+    .form-control {
+        text-align: left;
+        
+    }
+    .form-group label {
+        font-weight: bold;
+    }
+    .btn-primary {
+        width: 100%;
+        border-radius: 20px;
+    }
+</style>
+<div class="container add-pet-container">
+    <div class="card">
+        <h1 class="mb-4 text-center">Add Pet</h1>
+        <form method="POST" enctype="multipart/form-data">
+            <div class="form-group">
+                <label for="name">Pet Name</label>
+                <input type="text" class="form-control" id="name" name="name" required>
+            </div>
+            <div class="form-group">
+                <label for="location">City</label>
+                <select class="form-control" id="location" name="location" required>
+                    <option value="">Select City</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="area">Area</label>
+                <select class="form-control" id="area" name="area" required>
+                    <option value="">Select Area</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="pet_type">Pet Type</label>
+                <select class="form-control" id="pet_type" name="pet_type" required>
+                    <option value="cat">🐱 Cat</option>
+                    <option value="dog">🐶 Dog</option>
+                    <option value="bird">🐦 Bird</option>
+                    <option value="other">🐾 Other</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="breed">Breed</label>
+                <input type="text" class="form-control" id="breed" name="breed" required>
+             </div>   
+            <div class="form-group">
+                <label for="age">Age</label>
+                <input type="number" class="form-control" id="age" name="age" required>
+            </div>
+            <div class="form-group">
+                <label for="sex">Sex</label>
+                <select class="form-control" id="sex" name="sex" required>
+                    <option value="male">Male</option>
+                    <option value="female">Female</option>
+                    <option value="unknown">Unknown</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="vaccinated">Vaccinated</label>
+                <select class="form-control" id="vaccinated" name="vaccinated" required>
+                    <option value="1">Yes</option>
+                    <option value="0">No</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="neutered">Spayed / Neutered</label>
+                <select class="form-control" id="neutered" name="neutered" required>
+                    <option value="1">Yes</option>
+                    <option value="0">No</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="description">Description</label>
+                <textarea class="form-control" id="description" name="description" rows="3" required></textarea>
+            </div>
+            <div class="form-group">
+                <label for="photo">Photo</label>
+                <input type="file" class="form-control" id="photo" name="photo" required>
+            </div>
+            <button type="submit" class="btn btn-primary">Add Pet</button>
+        </form>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        fetch("{{ url_for('static', filename='locations.json') }}")
+            .then(response => response.json())
+            .then(data => {
+                const locationSelect = document.getElementById('location');
+                const areaSelect = document.getElementById('area');
+
+                // Populate the city dropdown
+                data.forEach(item => {
+                    const option = document.createElement('option');
+                    option.value = item.district;
+                    option.textContent = item.district;
+                    locationSelect.appendChild(option);
+                });
+
+                // Update area dropdown based on selected city
+                locationSelect.addEventListener('change', function() {
+                    const selectedDistrict = this.value;
+                    areaSelect.innerHTML = '<option value="">Select Area</option>';
+                    const district = data.find(item => item.district === selectedDistrict);
+                    if (district) {
+                        district.areas.forEach(area => {
+                            const option = document.createElement('option');
+                            option.value = area;
+                            option.textContent = area;
+                            areaSelect.appendChild(option);
+                        });
+                    }
+                });
+            })
+            .catch(error => console.error('Error loading locations:', error));
+    });
+</script>
+{% endblock %}
