@@ -6,20 +6,165 @@
     <div class="container mt-4">
         <h1 class="mb-4">Home</h1>
         <p>Welcome to the home page!</p>
+
         <div class="row">
-            {% for pet in pets %}
-            <div class="col-md-4 mb-4">
+            <!-- Sidebar for Filters -->
+            <div class="col-md-3">
                 <div class="card">
-                    <img src="{{ pet[8] }}" class="card-img-top" alt="{{ pet[1] }}">
                     <div class="card-body">
-                        <h5 class="card-title">{{ pet[1] }}</h5> 
-                        <p class="card-text">Age: {{ pet[6] }}</p> 
-                        <p class="card-text">Breed: {{ pet[5] }}</p> 
-                        <p class="card-text">Description: {{ pet[10] }}</p> 
+                        <h5 class="card-title">Filters</h5>
+                        <form id="filter-form">
+                            <div class="form-group">
+                                <label for="city">City</label>
+                                <select class="form-control" id="city" name="city">
+                                    <option value="">All Cities</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="area">Area</label>
+                                <select class="form-control" id="area" name="area">
+                                    <option value="">All Areas</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="pet_type">Pet Type</label>
+                                <select class="form-control" id="pet_type" name="pet_type">
+                                    <option value="">All Types</option>
+                                    <option value="cat">Cat</option>
+                                    <option value="dog">Dog</option>
+                                    <option value="bird">Bird</option>
+                                    <option value="other">Other</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="age">Age</label>
+                                <input type="number" class="form-control" id="age" name="age" placeholder="Age">
+                            </div>
+                            <div class="form-group">
+                                <label for="vaccinated">Vaccinated</label>
+                                <select class="form-control" id="vaccinated" name="vaccinated">
+                                    <option value="">Any</option>
+                                    <option value="1">Yes</option>
+                                    <option value="0">No</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="sex">Gender</label>
+                                <select class="form-control" id="sex" name="sex">
+                                    <option value="">Any</option>
+                                    <option value="male">Male</option>
+                                    <option value="female">Female</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="neutered">Neutered</label>
+                                <select class="form-control" id="neutered" name="neutered">
+                                    <option value="">Any</option>
+                                    <option value="1">Yes</option>
+                                    <option value="0">No</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="search">Search</label>
+                                <input type="text" class="form-control" id="search" name="search">
+                            </div>
+                        </form>
                     </div>
                 </div>
             </div>
-            {% endfor %}
+
+            <!-- Main Content -->
+            <div class="col-md-9">
+                <div class="row" id="pets-container">
+                    {% for pet in pets %}
+                    <div class="col-md-4 mb-4">
+                        <div class="card">
+                            <img src="{{ pet[8] }}" class="card-img-top" alt="{{ pet[1] }}">
+                            <div class="card-body">
+                                <h5 class="card-title">{{ pet[1] }}</h5> 
+                                <p class="card-text">Age: {{ pet[6] }}</p> 
+                                <p class="card-text">Breed: {{ pet[5] }}</p> 
+                                <p class="card-text">Description: {{ pet[10] }}</p> 
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
         </div>
     </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            fetch("{{ url_for('static', filename='locations.json') }}")
+                .then(response => response.json())
+                .then(data => {
+                    const citySelect = document.getElementById('city');
+                    const areaSelect = document.getElementById('area');
+
+                    // Populate the city dropdown
+                    data.forEach(item => {
+                        const option = document.createElement('option');
+                        option.value = item.district;
+                        option.textContent = item.district;
+                        citySelect.appendChild(option);
+                    });
+
+                    // Update area dropdown based on selected city
+                    citySelect.addEventListener('change', function() {
+                        const selectedCity = this.value;
+                        areaSelect.innerHTML = '<option value="">All Areas</option>';
+                        const city = data.find(item => item.district === selectedCity);
+                        if (city) {
+                            city.areas.forEach(area => {
+                                const option = document.createElement('option');
+                                option.value = area;
+                                option.textContent = area;
+                                areaSelect.appendChild(option);
+                            });
+                        }
+                        fetchPets();
+                    });
+                })
+                .catch(error => console.error('Error loading locations:', error));
+
+            // Fetch pets when any filter changes
+            document.querySelectorAll('#filter-form select, #filter-form input').forEach(element => {
+                element.addEventListener('change', fetchPets);
+            });
+
+            function fetchPets() {
+                const formData = new FormData(document.getElementById('filter-form'));
+                fetch("{{ url_for('views.home') }}", {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    const petsContainer = document.getElementById('pets-container');
+                    petsContainer.innerHTML = '';
+                    data.pets.forEach(pet => {
+                        const petCard = `
+                            <div class="col-md-4 mb-4">
+                                <div class="card">
+                                    <img src="${pet[8]}" class="card-img-top" alt="${pet[1]}">
+                                    <div class="card-body">
+                                        <h5 class="card-title">${pet[1]}</h5>
+                                        <p class="card-text">Age: ${pet[6]}</p>
+                                        <p class="card-text">Breed: ${pet[5]}</p>
+                                        <p class="card-text">Description: ${pet[10]}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                        petsContainer.insertAdjacentHTML('beforeend', petCard);
+                    });
+                })
+                .catch(error => console.error('Error:', error));
+            }
+
+            // Initial fetch
+            fetchPets();
+        });
+    </script>
 {% endblock %}
