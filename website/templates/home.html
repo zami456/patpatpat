@@ -79,12 +79,12 @@
                     {% for pet in pets %}
                     <div class="col-md-4 mb-4">
                         <div class="card">
-                            <img src="{{ pet[8] }}" class="card-img-top" alt="{{ pet[1] }}">
+                            <img src="{{ pet[11] }}" class="card-img-top" alt="{{ pet[1] }}">
                             <div class="card-body">
                                 <h5 class="card-title">{{ pet[1] }}</h5> 
                                 <p class="card-text">Age: {{ pet[6] }}</p> 
                                 <p class="card-text">Breed: {{ pet[5] }}</p> 
-                                <p class="card-text">Description: {{ pet[10] }}</p> 
+                                <p class="card-text">Description: {{ pet[10] }}</p>
                             </div>
                         </div>
                     </div>
@@ -147,12 +147,16 @@
                         const petCard = `
                             <div class="col-md-4 mb-4">
                                 <div class="card">
-                                    <img src="${pet[8]}" class="card-img-top" alt="${pet[1]}">
+                                    <img src="${pet[11]}" class="card-img-top" alt="${pet[1]}">
                                     <div class="card-body">
                                         <h5 class="card-title">${pet[1]}</h5>
                                         <p class="card-text">Age: ${pet[6]}</p>
                                         <p class="card-text">Breed: ${pet[5]}</p>
                                         <p class="card-text">Description: ${pet[10]}</p>
+                                        <form action="/adopt" method="post">
+                                            <input type="hidden" name="pet_id" value="${pet[0]}">
+                                            <button type="submit" class="btn btn-primary" style="display: block; margin-top: 10px; width: 100%;">Adopt</button>
+                                        </form>
                                     </div>
                                 </div>
                             </div>

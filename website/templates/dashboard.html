@@ -1,2 +1,79 @@
 {% extends "base.html" %}
-<h1>Dashboard</h1>
+
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row">
+        <!-- User Information -->
+        <div class="col-md-3">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h4>User Information</h4>
+                </div>
+                <div class="card-body">
+                    <p><strong>Name:</strong> {{ user.first_name }} {{ user.last_name }}</p>
+                    <p><strong>Email:</strong> {{ user.email }}</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="col-md-9">
+            <!-- Adoption Requests -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h4>Adoption Requests</h4>
+                </div>
+                <div class="card-body">
+                    {% if adoption_requests %}
+                        <div class="list-group">
+                            {% for request in adoption_requests %}
+                                <div class="list-group-item">
+                                    <h5 class="mb-1">Pet: {{ request[2] }}</h5>
+                                    <p class="mb-1"><strong>Message:</strong> {{ request[0] }}</p>
+                                    <small>Requested on: {{ request[1] }}</small>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p>No adoption requests.</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Pet Listings -->
+            <div class="card">
+                <div class="card-header">
+                    <h4>Your Pets</h4>
+                </div>
+                <div class="card-body">
+                    {% if pets %}
+                        <div class="row">
+                            {% for pet in pets %}
+                                <div class="col-md-4 mb-4">
+                                    <div class="card">
+                                        <img src="{{ pet[11] }}" class="card-img-top" alt="{{ pet[1] }}">
+                                        <div class="card-body">
+                                            <h5 class="card-title">{{ pet[1] }}</h5>
+                                            <p class="card-text">Age: {{ pet[6] }}</p>
+                                            <p class="card-text">Breed: {{ pet[5] }}</p>
+                                            <p class="card-text">Description: {{ pet[10] }}</p>
+                                            <form action="/edit" method="post">
+                                                <input type="hidden" name="pet_id" value="{{ pet[0] }}">
+                                                <button type="submit" class="btn btn-primary" style="display: block; margin-top: 10px; width: 100%;">Edit</button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <p>You have no pets listed.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
