@@ -1,6 +1,9 @@
-changed pet table is here
-create the pet table in xampp using this, drop previous one
+CREATE TABLE users(  id INT AUTO_INCREMENT PRIMARY KEY,  email VARCHAR(255) NOT NULL UNIQUE,  first_name VARCHAR(255) NOT NULL,  password VARCHAR(255) NOT NULL  );
 
+
+
+
+--
 CREATE TABLE pets (
     id INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
@@ -15,5 +18,17 @@ CREATE TABLE pets (
     description TEXT,
     image_filename VARCHAR(255),
     user_id INT,
-    FOREIGN KEY (user_id) REFERENCES users(id)
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+
+
+CREATE TABLE adoption_request (
+    user_id INT NOT NULL,
+    pet_id INT NOT NULL,
+    PRIMARY KEY (user_id, pet_id),
+    message TEXT,
+    date_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (pet_id) REFERENCES pets(id) ON DELETE CASCADE
 );
