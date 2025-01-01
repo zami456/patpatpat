@@ -78,9 +78,9 @@
             <div class="form-group">
                 <label for="sex">Sex</label>
                 <select class="form-control" id="sex" name="sex" required>
-                    <option value="male" {% if pet[7] == 'male' %}selected{% endif %}>Male</option>
-                    <option value="female" {% if pet[7] == 'female' %}selected{% endif %}>Female</option>
-                    <option value="unknown" {% if pet[7] == 'unknown' %}selected{% endif %}>Unknown</option>
+                    <option value="Male" {% if pet[7] == 'Male' %}selected{% endif %}>Male</option>
+                    <option value="Female" {% if pet[7] == 'Female' %}selected{% endif %}>Female</option>
+                    <option value="Unknown" {% if pet[7] == 'Unknown' %}selected{% endif %}>Unknown</option>
                 </select>
             </div>
             <div class="form-group">
@@ -102,11 +102,26 @@
                 <textarea class="form-control" id="description" name="description" rows="3" required>{{ pet[10] }}</textarea>
             </div>
             <div class="form-group">
-                <label for="photo">Photo</label>
-                <input type="file" class="form-control" id="photo" name="photo">
-                {% if pet[11] %}
-                <img src="{{ pet[11] }}" class="img-fluid mt-2" alt="{{ pet[1] }}">
-                {% endif %}
+                <label for="image1">Image 1</label>
+                <input type="file" class="form-control-file" id="image1" name="image1">
+            </div>
+            <div class="form-group">
+                <label for="image2">Image 2</label>
+                <input type="file" class="form-control-file" id="image2" name="image2">
+            </div>
+            <div class="form-group">
+                <label for="image3">Image 3</label>
+                <input type="file" class="form-control-file" id="image3" name="image3">
+            </div>
+            <div class="form-group">
+                <label>Current Images</label>
+                <div class="row">
+                    {% for image in pet_images %}
+                    <div class="col-md-4">
+                        <img src="{{ image }}" class="img-thumbnail" alt="Pet Image">
+                    </div>
+                    {% endfor %}
+                </div>
             </div>
             <button type="submit" class="btn btn-primary">Update Pet</button>
         </form>

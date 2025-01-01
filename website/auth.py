@@ -43,26 +43,30 @@ def sign_up():
         firstName= request.form.get('firstName')
         password1 = request.form.get('password1')
         password2 = request.form.get('password2')
+        contact = request.form.get('contact')
         if len(email) < 4:
             flash("Email must be greater than 4 characters", category='error')
-            print("Email must be greater than 4 characters")
         elif len(firstName) < 2:
             flash("First Name must be greater than 2 characters", category='error')
-            print("First Name must be greater than 2 characters")
         elif password1 != password2:
             flash("Passwords don't match", category='error')
-            print("Passwords don't match")
         elif len(password1) < 8:
-            flash("Password must be at least 8 characters", category='error')
-            print("Password must be at least 8 characters")    
+            flash("Password must be at least 8 characters", category='error')   
+        elif len(contact) != 11:
+            flash("Contact must be 11 characters", category='error')
         else:
             cursor = mysql.connection.cursor()
             hashed_password = generate_password_hash(password1, method='pbkdf2:sha256')
             try:
-                cursor.execute('INSERT INTO users (email, first_name, password) VALUES (%s, %s, %s)', (email, firstName, hashed_password))
-                user = cursor.fetchone() #??
+                cursor.execute('INSERT INTO users (email, first_name, password, contact_no) VALUES (%s, %s, %s, %s)', (email, firstName, hashed_password, contact))
                 mysql.connection.commit()
-                login_user(user, remember=True)
+                cursor.execute('SELECT * FROM users WHERE email = %s', (email,))
+                user = cursor.fetchone()
+                cursor.close()
+                user_obj = User(id=user[0], email=user[1], first_name=user[2], password=user[3])
+
+                
+                login_user(user_obj, remember=True)
                 flash('Account created successfully!', category='success')
                 return redirect(url_for('auth.login'))
             except Exception as e:

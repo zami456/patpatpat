@@ -3,6 +3,15 @@
 {% block title %}Dashboard{% endblock %}
 
 {% block content %}
+<style>
+    .card-img-top{
+    width: 100%; 
+    height: 200px;
+    object-fit: cover; 
+
+    }
+
+</style>
 <div class="container mt-5">
     <div class="row">
         <!-- User Information -->
@@ -32,12 +41,28 @@
                                 <div class="list-group-item">
                                     <h5 class="mb-1">Pet: {{ request[2] }}</h5>
                                     <p class="mb-1"><strong>Message:</strong> {{ request[0] }}</p>
+                                    <p class="mb-1"><strong>Requested by:</strong> {{ request[3] }}</p>
+                                    <p class="mb-1"><strong>Contact:</strong> {{ request[4] }}</p>
                                     <small>Requested on: {{ request[1] }}</small>
                                 </div>
                             {% endfor %}
                         </div>
+                        <!-- Pagination controls -->
+                        <nav aria-label="Page navigation">
+                            <ul class="pagination">
+                                {% if page > 1 %}
+                                    <li class="page-item"><a class="page-link" href="{{ url_for('views.dashboard', page=page-1) }}">Previous</a></li>
+                                {% endif %}
+                                {% for p in range(1, total_pages + 1) %}
+                                    <li class="page-item {% if p == page %}active{% endif %}"><a class="page-link" href="{{ url_for('views.dashboard', page=p) }}">{{ p }}</a></li>
+                                {% endfor %}
+                                {% if page < total_pages %}
+                                    <li class="page-item"><a class="page-link" href="{{ url_for('views.dashboard', page=page+1) }}">Next</a></li>
+                                {% endif %}
+                            </ul>
+                        </nav>
                     {% else %}
-                        <p>No adoption requests.</p>
+                        <p>No adoption requests found.</p>
                     {% endif %}
                 </div>
             </div>

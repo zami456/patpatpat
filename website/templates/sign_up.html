@@ -3,6 +3,14 @@
 {% block title %}Sign Up{% endblock %}
 
 {% block content %}
+<style>
+    .signup-container {
+        width: 400px;
+        margin: 0 auto;
+        padding-top: 100px;
+    }
+</style>
+    <div class="signup-container">
     <form method="POST">
         <h3 align="center">Sign Up</h3>
         <div class="form-group">
@@ -14,9 +22,13 @@
             <input type="password" class="form-control" id="password1" name="password1" placeholder="Enter password">
             <label for="password2">Confirm Password</label>
             <input type="password" class="form-control" id="password2" name="password2" placeholder="Enter password again">
+            <label for="contact">Contact Number</label>
+            <input type="text" class="form-control" id="contact" name="contact" placeholder="Enter contact number">
+
         </div>
         <button type="submit" class="btn btn-primary">Sign Up</button>
         <br/>
 
     </form>
+    </div>
 {% endblock %}

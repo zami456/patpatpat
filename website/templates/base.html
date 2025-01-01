@@ -14,6 +14,7 @@
     href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css"
     crossorigin="anonymous"
     />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     <title>{% block title %}Home{% endblock %}</title>
     <style>
         .navbar-custom {
@@ -36,21 +37,29 @@
     </style>
 </head>
 <body>
-    <nav class ="navbar navbar-expand-lg navbar-custom" style="color: White;">
-       <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbar">
-           <span class="navbar-toggler-icon"></span> 
-       </button>
-       <div class="collapse navbar-collapse" id="navbar">
-           <div class="navbar-nav">
-                <a class="nav-item nav-link" id="login" href="/login">Login</a>
-                <a class="nav-item nav-link" id="signUp" href="/sign-up">Sign Up</a>
-                <a class="nav-item nav-link" id="logout" href="/logout">Logout</a>
+    <nav class="navbar navbar-expand-lg navbar-custom" style="color: White;">
+        <a class="navbar-brand" href="/">
+            <img src="{{ url_for('static', filename='logo.png') }}" alt="Logo" style="height: 40px;">
+        </a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbar">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbar">
+            <div class="navbar-nav mr-auto">
                 <a class="nav-item nav-link" id="home" href="/">Home</a>
-                <a class="nav-item nav-link" id="dashboard" href="/dashboard">Dashboard</a>
                 <a class="nav-item nav-link" id="add" href="/add">Add Pet</a>
                 <a class="nav-item nav-link" id="foster" href="/foster">Fostering</a>
+                <a class="nav-item nav-link" id="login" href="/login">Login</a>
+                <a class="nav-item nav-link" id="signUp" href="/sign-up">Sign Up</a>
             </div>
-
+            <div class="navbar-nav ml-auto">
+                <a class="nav-item nav-link" id="dashboard" href="/dashboard">
+                    <i class="fas fa-user"></i> Dashboard
+                </a>
+                <a class="nav-item nav-link" id="logout" href="/logout">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </a>
+            </div>
         </div>
     </nav>
 

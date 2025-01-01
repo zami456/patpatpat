@@ -1,9 +1,9 @@
 import os
+import uuid
 from flask import Blueprint, render_template, request, redirect, jsonify, url_for, current_app, flash
 from flask_login import login_required, current_user
 from werkzeug.utils import secure_filename
 from . import mysql
-
 views = Blueprint('views', __name__)
 
 UPLOAD_FOLDER = 'static/images'
@@ -71,20 +71,31 @@ def home():
 @login_required
 def dashboard():
     user_id = current_user.id
+    page = request.args.get('page', 1, type=int)
+    per_page = 3  # Number of requests per page
+    offset = (page - 1) * per_page
+
     cursor = mysql.connection.cursor()
+    cursor.execute('SELECT COUNT(*) FROM adoption_request ar JOIN pets p ON ar.pet_id = p.id WHERE p.user_id = %s', (user_id,))
+    total_requests = cursor.fetchone()[0]
+    total_pages = (total_requests + per_page - 1) // per_page
+
     cursor.execute('''
-        SELECT ar.message, ar.date_time, p.name AS pet_name
+        SELECT ar.message, ar.date_time, p.name AS pet_name, u.first_name, u.contact_no
         FROM adoption_request ar
         JOIN pets p ON ar.pet_id = p.id
+        JOIN users u ON ar.user_id = u.id
         WHERE p.user_id = %s
         ORDER BY ar.date_time DESC
-    ''', (user_id,))
+        LIMIT %s OFFSET %s
+    ''', (user_id, per_page, offset))
     adoption_requests = cursor.fetchall()
+
     cursor.execute('SELECT * FROM pets WHERE user_id = %s', (user_id,))
     pets = cursor.fetchall()
     cursor.close()
-    return render_template("dashboard.html", user=current_user, adoption_requests=adoption_requests, pets=pets)
 
+    return render_template('dashboard.html', adoption_requests=adoption_requests, pets=pets, page=page, total_pages=total_pages, user=current_user)
 @views.route('/add', methods=['GET', 'POST'])
 @login_required
 def add():
@@ -105,12 +116,13 @@ def add():
         image = request.files['photo']
         if image and allowed_file(image.filename):
             filename = secure_filename(image.filename)
+            unique_filename = str(uuid.uuid4()) + filename
             upload_folder = os.path.join(current_app.root_path, 'static/images')
             if not os.path.exists(upload_folder):
                 os.makedirs(upload_folder)
-            image_path = os.path.join(upload_folder, filename)
+            image_path = os.path.join(upload_folder, unique_filename)
             image.save(image_path)
-            image_url = url_for('static', filename=f'images/{filename}')
+            image_url = url_for('static', filename=f'images/{unique_filename}')
         else:
             image_url = None
 
@@ -130,8 +142,11 @@ def adpot():
         cursor = mysql.connection.cursor()
         cursor.execute('SELECT * FROM pets WHERE id = %s', (pet_id,))
         pet = cursor.fetchone()
+        pet_images = [pet[11], pet[13], pet[14]]
+        cursor.execute('SELECT * FROM users WHERE id = %s', (pet[12],))
+        owner = cursor.fetchone()
         cursor.close()
-    return render_template("adopt.html", pet = pet)
+    return render_template("adopt.html", pet = pet, owner = owner, pet_images = pet_images)
 
 
 @views.route('/confirm_adoption', methods=['GET', 'POST'])
@@ -156,10 +171,10 @@ def edit():
     cursor = mysql.connection.cursor()
     cursor.execute('SELECT * FROM pets WHERE id = %s', (pet_id,))
     pet = cursor.fetchone()
-    print(pet)
+    pet_images = [pet[11], pet[13], pet[14]]
     cursor.close()
 
-    return render_template("edit.html", pet=pet)
+    return render_template("edit.html", pet=pet, pet_images=pet_images)
 
 @views.route('/update/<int:pet_id>', methods=['POST'])
 @login_required
@@ -174,8 +189,59 @@ def update(pet_id):
         vax = request.form.get('vaccinated') == '1'
         neutered = request.form.get('neutered') == '1'
         description = request.form.get('description')
+        # Handle image upload
+    
+        image1 = request.files['image1']
+        image2 = request.files['image2']
+        image3 = request.files['image3']
+        images = [image1, image2, image3]
+
+        #delte specific old images if new images are uploaded for that specific image   
+        cursor = mysql.connection.cursor()
+        cursor.execute('SELECT * FROM pets WHERE id = %s', (pet_id,))
+        pet = cursor.fetchone()
+        pet_images = [pet[11], pet[13], pet[14]]
+        cursor.close()
+        for i in range(0, 3):
+            if images[i] and allowed_file(images[i].filename):
+                if pet_images[i] != None:
+                    cursor = mysql.connection.cursor()
+                    #set the image column to null
+                    if i == 0:
+                        cursor.execute('UPDATE pets SET image_filename=NULL WHERE id=%s', (pet_id,))
+                    elif i == 1:
+                        cursor.execute('UPDATE pets SET img2=NULL WHERE id=%s', (pet_id,))
+                    elif i == 2:
+                        cursor.execute('UPDATE pets SET img3=NULL WHERE id=%s', (pet_id,))       
+                    cursor.close()     
+                    os.remove(os.path.join(current_app.root_path, pet_images[i][1:]))
+
+        #upload new images
+        for image in images:
+            if image and allowed_file(image.filename):
+                filename = secure_filename(image.filename)
+                unique_filename = str(uuid.uuid4()) + filename
+                upload_folder = os.path.join(current_app.root_path, 'static/images')
+                if not os.path.exists(upload_folder):
+                    os.makedirs(upload_folder)
+                image_path = os.path.join(upload_folder, unique_filename)
+                image.save(image_path)
+                image_url = url_for('static', filename=f'images/{unique_filename}')
+                cursor = mysql.connection.cursor()
+                if image == image1:
+                    cursor.execute('UPDATE pets SET image_filename=%s WHERE id=%s', (image_url, pet_id))
+                elif image == image2:
+                    cursor.execute('UPDATE pets SET img2=%s WHERE id=%s', (image_url, pet_id))
+                elif image == image3:
+                    cursor.execute('UPDATE pets SET img3=%s WHERE id=%s', (image_url, pet_id))
+                
+                mysql.connection.commit()
+                cursor.close()
+
+
         cursor = mysql.connection.cursor()
         cursor.execute('UPDATE pets SET name=%s, age=%s, pet_type=%s, breed=%s, vaccinated=%s, city=%s, area=%s, sex=%s, neutered=%s, description=%s WHERE id=%s', (name, age, pet_type, breed, vax, city, area, sex, neutered, description, pet_id))
+        
         mysql.connection.commit()
         cursor.close()
         return redirect(url_for('views.dashboard'))
@@ -184,6 +250,14 @@ def update(pet_id):
 @login_required
 def delete(pet_id):
     cursor = mysql.connection.cursor()
+    #delete images from the server
+    cursor.execute('SELECT * FROM pets WHERE id = %s', (pet_id,))
+    pet = cursor.fetchone()
+    pet_images = [pet[11], pet[13], pet[14]]
+    cursor.close()
+    for image in pet_images:
+        if image != None:
+            os.remove(os.path.join(current_app.root_path, image[1:]))
     cursor.execute('DELETE FROM pets WHERE id = %s', (pet_id,))
     mysql.connection.commit()
     cursor.close()
