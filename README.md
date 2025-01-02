@@ -1,0 +1,3 @@
+CREATE TABLE lost_found ( id INT AUTO_INCREMENT PRIMARY KEY, name VARCHAR(255) NOT NULL,age INT,species VARCHAR(255) NOT NULL,breed VARCHAR(255) NOT NULL,status ENUM('lost', 'found') NOT NULL,location VARCHAR(255) NOT NULL,description VARCHAR(255) NOT NULL, user_id INT, FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,photo VARCHAR(255) NOT NULL);
+
+CREATE TABLE claim_request ( user_id INT NOT NULL, pet_id INT NOT NULL, PRIMARY KEY (user_id, pet_id), message TEXT, FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE, FOREIGN KEY (pet_id) REFERENCES lost_found(id) ON DELETE CASCADE );
