@@ -1,0 +1,1 @@
+CREATE TABLE claim_request ( user_id INT NOT NULL, pet_id INT NOT NULL, PRIMARY KEY (user_id, pet_id), message TEXT, FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE, FOREIGN KEY (pet_id) REFERENCES pets(id) ON DELETE CASCADE );
