@@ -47,10 +47,16 @@
         <div class="collapse navbar-collapse" id="navbar">
             <div class="navbar-nav mr-auto">
                 <a class="nav-item nav-link" id="home" href="/">Home</a>
+                <a class="nav-item nav-link" id="lost and found" href="/lost_found">Lost & Found</a>
+                {% if user.is_authenticated %}
                 <a class="nav-item nav-link" id="add" href="/add">Add Pet</a>
                 <a class="nav-item nav-link" id="foster" href="/foster">Fostering</a>
+                {% else %}
                 <a class="nav-item nav-link" id="login" href="/login">Login</a>
                 <a class="nav-item nav-link" id="signUp" href="/sign-up">Sign Up</a>
+                
+                {% endif %}
+            {% if user.is_authenticated %}    
             </div>
             <div class="navbar-nav ml-auto">
                 <a class="nav-item nav-link" id="dashboard" href="/dashboard">
@@ -61,6 +67,7 @@
                 </a>
             </div>
         </div>
+        {% endif %}
     </nav>
 
     {% with messages = get_flashed_messages(with_categories=true) %}

@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+
+{% block title %}Lost & Found{% endblock %}
+
+{% block content %}
+    <style>
+        body {
+            background-image: url("https://www.daysoftheyear.com/cdn-cgi/image/dpr=1%2Cf=auto%2Cfit=cover%2Cg=auto%2Ch=675%2Cq=85%2Csharpen=2%2Cw=1200/wp-content/uploads/lost-found-day.jpg");
+            background-size: cover;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+        }
+        .card-img-top {
+            width: 100%; 
+            height: 200px;
+            object-fit: cover; 
+        }
+    </style>
+    <div class="container mt-4">
+        <h1 class="mb-4" style="color: yellow; font-weight: bold;">Lost & Found</h1>
+        <form method="GET" action="/lost_found">
+            <div class="form-group">
+                <label for="location">City</label>
+                <select class="form-control" id="location" name="location" required>
+                    <option value="">Select City</option>
+                </select>
+            </div>
+            <button type="submit" class="btn btn-primary">Search</button>
+        </form>
+
+        {% if pets %}
+            <h2>Results</h2>
+            <div class="row">
+                {% for pet in pets %}
+                    <div class="col-md-4 mb-4">
+                        <div class="card">
+                            <img src="{{ pet[9]}}" class="card-img-top" alt="{{ pet[1]}}">
+                            <div class="card-body">
+                                <h5 class="card-title">{{ pet[1] }}</h5>
+                                <p class="card-text">Age: {{ pet[2] }}</p>
+                                <p class="card-text">Breed: {{ pet[4] }}</p>
+                                <p class="card-text">Description: {{ pet[7] }}</p>
+                                {% if pet[5]== 'lost' %}
+                                    <p class="text-danger">LOST</p>
+                                {% elif pet[5] == 'found' %}
+                                    <p class="text-success">FOUND</p>
+                                {% endif %}
+                                <a href="{{ url_for('views.claim', pet_id=pet[0]) }}" class="btn btn-primary">Claim</a>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p>No results found.</p>
+        {% endif %}
+    </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    function fetchPets() {
+        fetch('/api/pets')
+        .then(response => response.json())
+        .then(data => {
+            const petsContainer = document.getElementById('pets-container');
+            petsContainer.innerHTML = '';
+            data.forEach(pet => {
+                const petCard = `
+                    <div class="col-md-4 mb-4">
+                        <div class="card">
+                            <img src="${pet[9]}" class="card-img-top" alt="${pet[1]}">
+                            <div class="card-body">
+                                <h5 class="card-title">${pet[1]}</h5>
+                                <p class="card-text">Age: ${pet[2]}</p>
+                                <p class="card-text">Breed: ${pet[4]}</p>
+                                <p class="card-text">Description: ${pet[7]}</p>
+                                <p class="text-${pet[5] === 'lost' ? 'danger' : 'success'}">${pet[6]}</p>
+                                <a href="/claim/${pet[0]}" class="btn btn-primary">Claim</a>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                petsContainer.insertAdjacentHTML('beforeend', petCard);
+            });
+        })
+        .catch(error => console.error('Error:', error));
+    }
+
+    // Initial fetch
+    fetchPets();
+});
+</script>
+{% endblock %}

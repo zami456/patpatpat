@@ -65,7 +65,7 @@ def home():
     cursor.execute('SELECT * FROM pets')
     pets = cursor.fetchall()
     cursor.close()
-    return render_template('home.html', pets=pets)
+    return render_template('home.html', pets=pets, user=current_user)
 
 @views.route('/dashboard')
 @login_required
@@ -93,6 +93,9 @@ def dashboard():
 
     cursor.execute('SELECT * FROM pets WHERE user_id = %s', (user_id,))
     pets = cursor.fetchall()
+    cursor.execute('SELECT * FROM lost_found WHERE user_id = %s', (user_id,))
+    lost_found = cursor.fetchall()
+    pets=pets+lost_found
     cursor.close()
 
     return render_template('dashboard.html', adoption_requests=adoption_requests, pets=pets, page=page, total_pages=total_pages, user=current_user)
@@ -111,6 +114,7 @@ def add():
         neutered = request.form.get('neutered') == '1'
         owner = current_user.id
         description = request.form.get('description')
+        status = request.form.get('status')
         
         # Handle image upload
         image = request.files['photo']
@@ -127,12 +131,21 @@ def add():
             image_url = None
 
         cursor = mysql.connection.cursor()
-        cursor.execute('INSERT INTO pets (name, age, pet_type, breed, vaccinated, city, area, sex, neutered, description, user_id, image_filename) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)', (name, age, pet_type, breed, vax, city, area, sex, neutered, description, owner, image_url))
+        if status=='found' or status=='lost':
+
+            cursor.execute('INSERT INTO lost_found (name, age, species, breed,status , location, description, user_id, photo) VALUES ( %s, %s, %s, %s, %s, %s, %s, %s, %s)', (name, age, pet_type, breed, status, city, description, owner, image_url))
+        else:
+            cursor.execute('INSERT INTO pets (name, age, pet_type, breed, vaccinated, city, area, sex, neutered, description, user_id, image_filename) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)', (name, age, pet_type, breed, vax, city, area, sex, neutered, description, owner, image_url))
         mysql.connection.commit()
         cursor.close()
+        #
+        #cursor.execute('INSERT INTO pets (name, age, pet_type, breed, vaccinated, city, area, sex, neutered, description, user_id, image_filename) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)', (name, age, pet_type, breed, vax, city, area, sex, neutered, description, owner, image_url))
+        #mysql.connection.commit()
+        #cursor.close()
+        #
         return redirect(url_for('views.home'))
 
-    return render_template("add.html")
+    return render_template("add.html", user=current_user)
 
 @views.route('/adopt', methods=['GET', 'POST'])
 @login_required
@@ -146,35 +159,52 @@ def adpot():
         cursor.execute('SELECT * FROM users WHERE id = %s', (pet[12],))
         owner = cursor.fetchone()
         cursor.close()
-    return render_template("adopt.html", pet = pet, owner = owner, pet_images = pet_images)
+    return render_template("adopt.html", pet = pet, owner = owner, pet_images = pet_images, user=current_user)
 
 
 @views.route('/confirm_adoption', methods=['GET', 'POST'])
 def confirm_adoption():
     if request.method == 'POST':
-        try:
-            pet_id = request.form.get('pet_id')
-            message = request.form.get('message')
-            cursor = mysql.connection.cursor()
-            cursor.execute('INSERT INTO adoption_request (pet_id, user_id, message) VALUES (%s, %s, %s)', (pet_id, current_user.id, message))
-            mysql.connection.commit()
-            cursor.close()
-        except:
-            flash("You've already requested this pet", category='error')    
+        pet_id = request.form.get('pet_id')
+        message = request.form.get('message')
+        cursor = mysql.connection.cursor()
+        cursor.execute('SELECT user_id FROM pets WHERE id = %s', (pet_id,))
+        owner_id = cursor.fetchone()[0]
+        cursor.close()
+        if owner_id == current_user.id:
+            flash("You can't request your own pet", category='error')
+        
+        else:
+            try:
+            
+                cursor = mysql.connection.cursor()
+                cursor.execute('INSERT INTO adoption_request (pet_id, user_id, message) VALUES (%s, %s, %s)', (pet_id, current_user.id, message))
+                mysql.connection.commit()
+                cursor.close()
+            except:
+                flash("You've already requested this pet", category='error')    
     return redirect('/')
 
 @views.route('/edit', methods=['POST'])
 @login_required
 def edit():
     pet_id = request.form.get('pet_id')
-    print(pet_id)
-    cursor = mysql.connection.cursor()
-    cursor.execute('SELECT * FROM pets WHERE id = %s', (pet_id,))
-    pet = cursor.fetchone()
-    pet_images = [pet[11], pet[13], pet[14]]
-    cursor.close()
+    pet_type = request.form.get('pet_type')
+    print(pet_type)
+    if pet_type:
+        cursor = mysql.connection.cursor()
+        cursor.execute('SELECT * FROM lost_found WHERE id = %s', (pet_id,))
+        pet = cursor.fetchone()
+        pet_images = [pet[9]]
+        cursor.close()
+    else:
+        cursor = mysql.connection.cursor()
+        cursor.execute('SELECT * FROM pets WHERE id = %s', (pet_id,))
+        pet = cursor.fetchone()
+        pet_images = [pet[11], pet[13], pet[14]]
+        cursor.close()
 
-    return render_template("edit.html", pet=pet, pet_images=pet_images)
+    return render_template("edit.html", pet=pet, pet_images=pet_images, user=current_user)
 
 @views.route('/update/<int:pet_id>', methods=['POST'])
 @login_required
@@ -258,7 +288,57 @@ def delete(pet_id):
     for image in pet_images:
         if image != None:
             os.remove(os.path.join(current_app.root_path, image[1:]))
+    cursor = mysql.connection.cursor()        
     cursor.execute('DELETE FROM pets WHERE id = %s', (pet_id,))
     mysql.connection.commit()
     cursor.close()
     return redirect(url_for('views.dashboard'))
+
+
+#nazahr functions
+@views.route('/lost_found', methods=['GET','POST'])
+
+def lost_found():
+    if request.method == 'POST':
+        status = request.args.get('status')
+        cursor = mysql.connection.cursor()
+        if status=='found' or status=='lost':
+            cursor.execute('SELECT id, name, breed, status, photo FROM lost_found WHERE status = %s', (status,))
+        else:
+            cursor.execute('SELECT id, name, breed, status, photo FROM lost_found')
+        pets = cursor.fetchall()
+        print(pets)
+        cursor.close()
+    
+    
+        return jsonify({'pets': pets})
+
+    cursor = mysql.connection.cursor()
+    cursor.execute('SELECT * FROM lost_found')
+    pets = cursor.fetchall()
+    cursor.close()
+    return render_template('lost_found.html', pets=pets, user=current_user)
+
+
+@views.route('/claim/<int:pet_id>', methods=['GET', 'POST'])
+def claim(pet_id):
+    if request.method == 'POST':
+        try:
+            pet_id = request.form.get('pet_id')
+            message = request.form.get('message')
+            cursor = mysql.connection.cursor()
+            cursor.execute('INSERT INTO claim_request (pet_id, user_id, message) VALUES (%s, %s, %s)', (pet_id, current_user.id, message))
+            mysql.connection.commit()
+            cursor.close()
+        except:
+            flash("You've already requested this pet", category='error')
+        return redirect('/')    
+    
+    cursor = mysql.connection.cursor()
+    cursor.execute('SELECT * FROM lost_found WHERE id = %s', (pet_id,))
+    pet = cursor.fetchone()
+    cursor.close()
+    
+    return render_template('claim.html', pet=pet, user=current_user)
+
+
