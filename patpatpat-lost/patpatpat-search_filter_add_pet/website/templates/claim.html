@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+
+{% block title %}Claim pet{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-md-8 offset-md-2">
+            <div class="card">
+                <div class="card-header">
+                    <h2>Claim {{ pet[1] }}</h2>
+                </div>
+                <div class="card-body">
+                    <img src="{{ pet[11] }}" class="img-fluid mb-3" alt="{{ pet[1] }}">
+                    <h5 class="card-title">{{ pet[1] }}</h5>
+                    <p class="card-text"><strong>Breed:</strong> {{ pet[5] }}</p>
+                    <p class="card-text"><strong>Age:</strong> {{ pet[8] }}</p>
+                    <p class="card-text"><strong>Description:</strong> {{ pet[4] }}</p>
+                    <form action="/claim_this_pet" method="post">
+                        <input type="hidden" name="pet_id" value="{{ pet[0] }}">
+                        <div class="form-group">
+                            <label for="message">Message to Owner</label>
+                            <textarea class="form-control" id="message" name="message" rows="3" placeholder="Write a message to the owner..."></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-success btn-block">Claim this pet</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
