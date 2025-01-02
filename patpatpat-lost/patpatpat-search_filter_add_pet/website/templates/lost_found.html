@@ -29,18 +29,18 @@
                 {% for pet in pets %}
                     <div class="col-md-4 mb-4">
                         <div class="card">
-                            <img src="{{ pet.image_url }}" class="card-img-top" alt="{{ pet.name }}">
+                            <img src="{{ pet[9]}}" class="card-img-top" alt="{{ pet[1]}}">
                             <div class="card-body">
-                                <h5 class="card-title">{{ pet.name }}</h5>
-                                <p class="card-text">Age: {{ pet.age }}</p>
-                                <p class="card-text">Breed: {{ pet.breed }}</p>
-                                <p class="card-text">Description: {{ pet.description }}</p>
-                                {% if pet.status == 'lost' %}
+                                <h5 class="card-title">{{ pet[1] }}</h5>
+                                <p class="card-text">Age: {{ pet[2] }}</p>
+                                <p class="card-text">Breed: {{ pet[4] }}</p>
+                                <p class="card-text">Description: {{ pet[7] }}</p>
+                                {% if pet[5]== 'lost' %}
                                     <p class="text-danger">LOST</p>
-                                {% elif pet.status == 'found' %}
+                                {% elif pet[5] == 'found' %}
                                     <p class="text-success">FOUND</p>
                                 {% endif %}
-                                <a href="{{ url_for('views.claim', pet_id=pet.id) }}" class="btn btn-primary">Claim</a>
+                                <a href="{{ url_for('views.claim', pet_id=pet[0]) }}" class="btn btn-primary">Claim</a>
                             </div>
                         </div>
                     </div>
@@ -65,14 +65,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 const petCard = `
                     <div class="col-md-4 mb-4">
                         <div class="card">
-                            <img src="${pet.image_url}" class="card-img-top" alt="${pet.name}">
+                            <img src="${pet[9]}" class="card-img-top" alt="${pet[1]}">
                             <div class="card-body">
-                                <h5 class="card-title">${pet.name}</h5>
-                                <p class="card-text">Age: ${pet.age}</p>
-                                <p class="card-text">Breed: ${pet.breed}</p>
-                                <p class="card-text">Description: ${pet.description}</p>
-                                <p class="text-${pet.status === 'lost' ? 'danger' : 'success'}">${pet.status.toUpperCase()}</p>
-                                <a href="/claim/${pet.id}" class="btn btn-primary">Claim</a>
+                                <h5 class="card-title">${pet[1]}</h5>
+                                <p class="card-text">Age: ${pet[2]}</p>
+                                <p class="card-text">Breed: ${pet[4]}</p>
+                                <p class="card-text">Description: ${pet[7]}</p>
+                                <p class="text-${pet[5] === 'lost' ? 'danger' : 'success'}">${pet[6]}</p>
+                                <a href="/claim/${pet[0]}" class="btn btn-primary">Claim</a>
                             </div>
                         </div>
                     </div>

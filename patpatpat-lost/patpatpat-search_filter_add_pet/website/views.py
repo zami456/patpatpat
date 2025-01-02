@@ -83,6 +83,10 @@ def dashboard():
     adoption_requests = cursor.fetchall()
     cursor.execute('SELECT * FROM pets WHERE user_id = %s', (user_id,))
     pets = cursor.fetchall()
+    cursor.execute('SELECT * FROM lost_found WHERE user_id = %s', (user_id,))
+    lost_found = cursor.fetchall()
+    pets=pets+lost_found
+    print(pets)
     cursor.close()
     return render_template("dashboard.html", user=current_user, adoption_requests=adoption_requests, pets=pets)
 @views.route('/add', methods=['GET', 'POST'])
@@ -105,7 +109,7 @@ def add():
         print(status,1)
         cursor=mysql.connection.cursor()
         if status=='found' or status=='lost':
-            cursor.execute('INSERT INTO lost_found (name,location) VALUES ( %s, %s)' , (name,city)) 
+            cursor.execute('INSERT INTO lost_found (name, age, species, breed,status , location, description, user_id) VALUES ( %s, %s, %s, %s, %s, %s, %s, %s)', (name, age, pet_type, breed, status, city, description, owner))
         else:
             cursor.execute('INSERT INTO pets (name, age, pet_type, breed, vaccinated, city, area, sex, neutered, description, user_id) VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)', (name, age, pet_type, breed, vax, city, area, sex, neutered, description, owner))
         mysql.connection.commit()
@@ -114,21 +118,28 @@ def add():
 
     return render_template("add.html")
 
-@views.route('/lost_found', methods=['GET'])
+@views.route('/lost_found', methods=['GET','POST'])
+
 def lost_found():
-    status = request.args.get('status')
-    cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
-    if status=='found' or status=='lost':
-        cursor.execute('SELECT id, name, breed, status, photo FROM lost_found WHERE status = %s', (status,))
-    else:
-        cursor.execute('SELECT id, name, breed, status, photo FROM lost_found')
+    if request.method == 'POST':
+        status = request.args.get('status')
+        cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+        if status=='found' or status=='lost':
+            cursor.execute('SELECT id, name, breed, status, photo FROM lost_found WHERE status = %s', (status,))
+        else:
+            cursor.execute('SELECT id, name, breed, status, photo FROM lost_found')
+        pets = cursor.fetchall()
+        print(pets)
+        cursor.close()
+    
+    
+        return jsonify({'pets': pets})
+
+    cursor = mysql.connection.cursor()
+    cursor.execute('SELECT * FROM lost_found')
     pets = cursor.fetchall()
     cursor.close()
-    
-    if request.is_json:
-        return jsonify(pets)
     return render_template('lost_found.html', pets=pets)
-
 @views.route('/confirm_lost_found', methods=['POST'])
 def confirm_lost_found():
     pet_id = request.form['pet_id']
@@ -197,6 +208,9 @@ def edit():
     cursor = mysql.connection.cursor()
     cursor.execute('SELECT * FROM pets WHERE id = %s', (pet_id,))
     pet = cursor.fetchone()
+    if not pet:
+        cursor.execute('SELECT * FROM lost_found WHERE id = %s', (pet_id,))
+        pet = cursor.fetchone()
     print(pet)
     cursor.close()
 
@@ -243,5 +257,23 @@ def claim_pet():
         except:
             flash("You've already requested this pet", category='error')    
     return redirect('/')
+
+@views.route('/update_pet', methods=['POST'])
+@login_required
+def update_pet():
+    pet_id = request.form.get('pet_id')
+    name = request.form.get('name')
+    age = request.form.get('age')
+    breed = request.form.get('breed')
+    description = request.form.get('description')
+
+    cursor = mysql.connection.cursor()
+    cursor.execute('UPDATE pets SET name = %s, age = %s, breed = %s, description = %s WHERE id = %s', (name, age, breed, description, pet_id))
+    if cursor.rowcount == 0:
+        cursor.execute('UPDATE lost_found SET name = %s, age = %s, breed = %s, description = %s WHERE id = %s', (name, age, breed, description, pet_id))
+    mysql.connection.commit()
+    cursor.close()
+
+    return redirect(url_for('views.dashboard'))
 
 
