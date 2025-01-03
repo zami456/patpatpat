@@ -44,6 +44,8 @@ def sign_up():
         password1 = request.form.get('password1')
         password2 = request.form.get('password2')
         contact = request.form.get('contact')
+        facebook = request.form.get('fb')
+        whatsapp = request.form.get('whatsapp')
         if len(email) < 4:
             flash("Email must be greater than 4 characters", category='error')
         elif len(firstName) < 2:
@@ -58,7 +60,7 @@ def sign_up():
             cursor = mysql.connection.cursor()
             hashed_password = generate_password_hash(password1, method='pbkdf2:sha256')
             try:
-                cursor.execute('INSERT INTO users (email, first_name, password, contact_no) VALUES (%s, %s, %s, %s)', (email, firstName, hashed_password, contact))
+                cursor.execute('INSERT INTO users (email, first_name, password, contact_no, facebook, whatsapp) VALUES (%s, %s, %s, %s, %s, %s)', (email, firstName, hashed_password, contact, facebook, whatsapp))
                 mysql.connection.commit()
                 cursor.execute('SELECT * FROM users WHERE email = %s', (email,))
                 user = cursor.fetchone()

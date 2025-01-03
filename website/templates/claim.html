@@ -21,8 +21,8 @@
                     <p class="card-text"><strong>Posted by:</strong> {{ owner[2] }}</p>
                     <p class="card-text"><strong>Contact:</strong> {{ owner[4] }}</p>
                     <div class="social-links">
-                        <a href="{{ owner.facebook }}" target="_blank"><i class="fab fa-facebook"></i></a>
-                        <a href="https://wa.me/{{ owner.whatsapp }}" target="_blank"><i class="fab fa-whatsapp"></i></a>
+                        <a href="{{ owner[5] }}" target="_blank"><i class="fab fa-facebook"></i></a>
+                        <a href="https://wa.me/{{ owner[6] }}" target="_blank"><i class="fab fa-whatsapp"></i></a>
                     </div>
 
                     <form action="{{ url_for('views.claim', pet_id=pet[0]) }}" method="post">
