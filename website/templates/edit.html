@@ -35,6 +35,73 @@
 </style>
 <div class="container edit-pet-container">
     <div class="card">
+        {% if pet[5] == 'lost' or pet[5] == 'found' %}
+        <h1 class="mb-4 text-center">Edit Pet</h1>
+        <form id="delete-form" action="{{ url_for('views.delete', pet_id=pet[0]) }}" method="post">
+            <div class="form-group">
+                <input type="hidden" class="form-control" id="status" name="status" value="1" required>
+            </div>
+
+            <button type="button" class="btn btn-danger" id="delete-button" onclick="confirmDelete()">
+                <i class="fas fa-trash-alt"></i> Delete Pet
+            </button>
+        </form>
+        <form action="{{ url_for('views.update', pet_id=pet[0]) }}" method="post" enctype="multipart/form-data">
+            <div class="form-group">
+                <label for="name">Pet Name</label>
+                <input type="text" class="form-control" id="name" name="name" value="{{ pet[1] }}" required>
+            </div>
+            <div class="form-group">
+                <input type="hidden" class="form-control" id="status" name="status" value="1" required>
+            </div>
+            <div class="form-group">
+                <label for="location">City</label>
+                <select class="form-control" id="location" name="location" required>
+                    <option value="{{ pet[6] }}" selected>{{ pet[6] }}</option>
+                </select>
+            </div>
+ 
+            <div class="form-group">
+                <label for="pet_type">Pet Type</label>
+                <select class="form-control" id="pet_type" name="pet_type" required>
+                    <option value="cat" {% if pet[3] == 'cat' %}selected{% endif %}>🐱 Cat</option>
+                    <option value="dog" {% if pet[3] == 'dog' %}selected{% endif %}>🐶 Dog</option>
+                    <option value="bird" {% if pet[3] == 'bird' %}selected{% endif %}>🐦 Bird</option>
+                    <option value="other" {% if pet[3] == 'other' %}selected{% endif %}>🐾 Other</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="breed">Breed</label>
+                <input type="text" class="form-control" id="breed" name="breed" value="{{ pet[4] }}" required>
+            </div>
+            <div class="form-group">
+                <label for="age">Age</label>
+                <input type="number" class="form-control" id="age" name="age" value="{{ pet[2] }}" required>
+            </div>
+      
+   
+
+            <div class="form-group">
+                <label for="description">Description</label>
+                <textarea class="form-control" id="description" name="description" rows="3" required>{{ pet[7] }}</textarea>
+            </div>
+            <div class="form-group">
+                <label for="image1">Image 1</label>
+                <input type="file" class="form-control-file" id="image1" name="image1">
+            </div>
+            <div class="form-group">
+                <label>Current Images</label>
+                <div class="row">
+                    {% for image in pet_images %}
+                    <div class="col-md-4">
+                        <img src="{{ image }}" class="img-thumbnail" alt="Pet Image">
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            <button type="submit" class="btn btn-primary">Update Pet</button>
+        </form>
+        {% else %}
         <h1 class="mb-4 text-center">Edit Pet</h1>
         <form id="delete-form" action="{{ url_for('views.delete', pet_id=pet[0]) }}" method="post">
             <button type="button" class="btn btn-danger" id="delete-button" onclick="confirmDelete()">
@@ -125,9 +192,34 @@
             </div>
             <button type="submit" class="btn btn-primary">Update Pet</button>
         </form>
+        {% endif %}
     </div>
 </div>
+{% if pet[5] == 'lost' or pet[5] == 'found' %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        fetch("{{ url_for('static', filename='locations.json') }}")
+            .then(response => response.json())
+            .then(data => {
+                const locationSelect = document.getElementById('location');
 
+                // Populate the city dropdown
+                data.forEach(item => {
+                    const option = document.createElement('option');
+                    option.value = item.district;
+                    option.textContent = item.district;
+                    locationSelect.appendChild(option);
+                });
+
+                // Set the selected city
+                const selectedCity = "{{ pet[6] }}";
+                locationSelect.value = selectedCity;
+            })
+            .catch(error => console.error('Error loading locations:', error));
+    });
+</script>
+
+{% else %}
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         fetch("{{ url_for('static', filename='locations.json') }}")
@@ -179,6 +271,7 @@
             .catch(error => console.error('Error loading locations:', error));
     });
 </script>
+{% endif %}
 <script>
     function confirmDelete() {
         const deleteButton = document.getElementById('delete-button');
@@ -189,4 +282,5 @@
         }
     }
 </script>
+
 {% endblock %}

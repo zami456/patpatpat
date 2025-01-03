@@ -15,7 +15,16 @@
                     <h5 class="card-title">{{ pet[1] }}</h5>
                     <p class="card-text"><strong>Breed:</strong> {{ pet[4] }}</p>
                     <p class="card-text"><strong>Age:</strong> {{ pet[2] }}</p>
+                    <p class="card-text"><strong>Status:</strong> {{ pet[5] }}</p>
+                    <p class="card-text"><strong>Location:</strong> {{ pet[6] }}</p>
                     <p class="card-text"><strong>Description:</strong> {{ pet[7] }}</p>
+                    <p class="card-text"><strong>Posted by:</strong> {{ owner[2] }}</p>
+                    <p class="card-text"><strong>Contact:</strong> {{ owner[4] }}</p>
+                    <div class="social-links">
+                        <a href="{{ owner.facebook }}" target="_blank"><i class="fab fa-facebook"></i></a>
+                        <a href="https://wa.me/{{ owner.whatsapp }}" target="_blank"><i class="fab fa-whatsapp"></i></a>
+                    </div>
+
                     <form action="{{ url_for('views.claim', pet_id=pet[0]) }}" method="post">
                         <input type="hidden" name="pet_id" value="{{ pet[0] }}">
                         <div class="form-group">
