@@ -393,6 +393,7 @@ def lost_found():
 
 
 @views.route('/claim/<int:pet_id>', methods=['GET', 'POST'])
+@login_required
 def claim(pet_id):
     if request.method == 'POST':
         try:

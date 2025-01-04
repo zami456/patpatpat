@@ -46,7 +46,12 @@ def sign_up():
         contact = request.form.get('contact')
         facebook = request.form.get('fb')
         whatsapp = request.form.get('whatsapp')
-        if len(email) < 4:
+        cursor = mysql.connection.cursor()
+        cursor.execute('SELECT * FROM users WHERE email = %s', (email,))
+        user = cursor.fetchone()  
+        if user:
+            flash('Email already exists.', category='error')
+        elif len(email) < 4:
             flash("Email must be greater than 4 characters", category='error')
         elif len(firstName) < 2:
             flash("First Name must be greater than 2 characters", category='error')

@@ -18,29 +18,30 @@
     </style>
     <div class="container mt-4">
         <h1 class="mb-4" style="color: yellow; font-weight: bold;">Lost & Found</h1>
-        <form method="GET" action="/lost_found">
+        <form id="filter-form">
             <div class="form-group">
                 <label for="location">City</label>
-                <select class="form-control" id="location" name="location" required>
+                <select class="form-control" id="location" name="location">
                     <option value="">Select City</option>
                 </select>
             </div>
-            <button type="submit" class="btn btn-primary">Search</button>
+            <button type="button" class="btn btn-primary" onclick="filterPets()">Filter</button>
+            <button type="button" class="btn btn-secondary" onclick="resetFilter()">Reset</button>
         </form>
 
-        {% if pets %}
-            <h2>Results</h2>
-            <div class="row">
+        <div id="pets-container" class="row mt-4">
+            {% if pets %}
                 {% for pet in pets %}
-                    <div class="col-md-4 mb-4">
+                    <div class="col-md-4 mb-4 pet-card" data-city="{{ pet[6] }}">
                         <div class="card">
-                            <img src="{{ pet[9]}}" class="card-img-top" alt="{{ pet[1]}}">
+                            <img src="{{ pet[9] }}" class="card-img-top" alt="{{ pet[1] }}">
                             <div class="card-body">
                                 <h5 class="card-title">{{ pet[1] }}</h5>
                                 <p class="card-text">Age: {{ pet[2] }}</p>
+                                <p class="card-text">City: {{ pet[6] }}</p>
                                 <p class="card-text">Breed: {{ pet[4] }}</p>
                                 <p class="card-text">Description: {{ pet[7] }}</p>
-                                {% if pet[5]== 'lost' %}
+                                {% if pet[5] == 'lost' %}
                                     <p class="text-danger">LOST</p>
                                 {% elif pet[5] == 'found' %}
                                     <p class="text-success">FOUND</p>
@@ -50,46 +51,43 @@
                         </div>
                     </div>
                 {% endfor %}
-            </div>
-        {% else %}
-            <p>No results found.</p>
-        {% endif %}
-    </div>
-{% endblock %}
+            {% else %}
+                <p>No results found.</p>
+            {% endif %}
+        </div>
 
-{% block scripts %}
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    function fetchPets() {
-        fetch('/api/pets')
-        .then(response => response.json())
-        .then(data => {
-            const petsContainer = document.getElementById('pets-container');
-            petsContainer.innerHTML = '';
-            data.forEach(pet => {
-                const petCard = `
-                    <div class="col-md-4 mb-4">
-                        <div class="card">
-                            <img src="${pet[9]}" class="card-img-top" alt="${pet[1]}">
-                            <div class="card-body">
-                                <h5 class="card-title">${pet[1]}</h5>
-                                <p class="card-text">Age: ${pet[2]}</p>
-                                <p class="card-text">Breed: ${pet[4]}</p>
-                                <p class="card-text">Description: ${pet[7]}</p>
-                                <p class="text-${pet[5] === 'lost' ? 'danger' : 'success'}">${pet[6]}</p>
-                                <a href="/claim/${pet[0]}" class="btn btn-primary">Claim</a>
-                            </div>
-                        </div>
-                    </div>
-                `;
-                petsContainer.insertAdjacentHTML('beforeend', petCard);
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                const citySelect = document.getElementById('location');
+
+                fetch("{{ url_for('static', filename='locations.json') }}")
+                    .then(response => response.json())
+                    .then(data => {
+                        // Populate the city dropdown
+                        data.forEach(item => {
+                            const option = document.createElement('option');
+                            option.value = item.district;
+                            option.textContent = item.district;
+                            citySelect.appendChild(option);
+                        });
+                    })
+                    .catch(error => console.error('Error loading locations:', error));
             });
-        })
-        .catch(error => console.error('Error:', error));
-    }
 
-    // Initial fetch
-    fetchPets();
-});
-</script>
+            function filterPets() {
+                const selectedCity = document.getElementById('location').value;
+                document.querySelectorAll('.pet-card').forEach(card => {
+                    const petCity = card.getAttribute('data-city');
+                    card.style.display = (!selectedCity || petCity === selectedCity) ? 'block' : 'none';
+                });
+            }
+
+            function resetFilter() {
+                document.getElementById('location').value = '';
+                document.querySelectorAll('.pet-card').forEach(card => {
+                    card.style.display = 'block';
+                });
+            }
+        </script>
+    </div>
 {% endblock %}

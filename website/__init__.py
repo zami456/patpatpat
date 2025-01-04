@@ -21,7 +21,9 @@ def create_app():
         "  `email` VARCHAR(255) NOT NULL UNIQUE,"
         "  `first_name` VARCHAR(255) NOT NULL,"
         "  `password` VARCHAR(255) NOT NULL,"
-        "  `contact_no` VARCHAR(11) NOT NULL"
+        "  `contact_no` VARCHAR(11) NOT NULL,"
+        "  `facebook` VARCHAR(255),"
+        "  `whatsapp` VARCHAR(255)"
         ") ENGINE=InnoDB")
 
     TABLES['pets'] = (
